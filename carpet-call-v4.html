@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carpet Call</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Jost:ital,wght@0,200;0,300;0,400;0,500;0,600;1,200;1,300&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ══════════════════════════════════════
+   THEME VARIABLES
+══════════════════════════════════════ */
+
+/* VANITY ROOM — champagne, velvet, candlelight */
+[data-theme="vanity"] {
+  --bg:       #1A1118;
+  --bg2:      #221620;
+  --bg3:      #2C1D29;
+  --surface:  #321F30;
+  --border:   rgba(212,175,118,0.12);
+  --border2:  rgba(212,175,118,0.22);
+  --accent:   #D4AF76;
+  --accent2:  #C4756A;
+  --accent3:  #9B6B8A;
+  --text:     #F5EDE0;
+  --text-dim: #9B8070;
+  --text-sub: #7A6060;
+  --glow-col: rgba(196,117,106,0.08);
+  --glow-col2: rgba(212,175,118,0.06);
+  --top-deco: "vanity";
+}
+
+/* THE DEN — cognac, dark wood, brass */
+[data-theme="den"] {
+  --bg:       #0F0D08;
+  --bg2:      #171208;
+  --bg3:      #1E1810;
+  --surface:  #261F12;
+  --border:   rgba(184,140,60,0.12);
+  --border2:  rgba(184,140,60,0.25);
+  --accent:   #B88C3C;
+  --accent2:  #8B4513;
+  --accent3:  #6B7B4A;
+  --text:     #EDE8D8;
+  --text-dim: #8A7A5A;
+  --text-sub: #6A5A3A;
+  --glow-col: rgba(139,69,19,0.08);
+  --glow-col2: rgba(184,140,60,0.05);
+  --top-deco: "den";
+}
+
+/* THE GROUPCHAT — loud, late night, no filter */
+[data-theme="chat"] {
+  --bg:       #0D0D12;
+  --bg2:      #131318;
+  --bg3:      #1A1A22;
+  --surface:  #20202A;
+  --border:   rgba(130,100,255,0.12);
+  --border2:  rgba(130,100,255,0.25);
+  --accent:   #8264FF;
+  --accent2:  #FF6B6B;
+  --accent3:  #00D4AA;
+  --text:     #F0EFF8;
+  --text-dim: #8080A0;
+  --text-sub: #606080;
+  --glow-col: rgba(130,100,255,0.07);
+  --glow-col2: rgba(255,107,107,0.05);
+  --top-deco: "chat";
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Jost', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.6s ease, color 0.4s ease;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 0%, var(--glow-col) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 85% 90%, var(--glow-col2) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+  transition: background 0.6s ease;
+}
+
+/* ══════════════════════════════════════
+   ROOM SELECTOR — LANDING
+══════════════════════════════════════ */
+.room-selector {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #0A0808;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.room-selector.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1.02);
+}
+
+.selector-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: rgba(245,237,224,0.3);
+  margin-bottom: 16px;
+}
+
+.selector-title {
+  font-family: 'Cormorant', serif;
+  font-size: clamp(42px, 6vw, 72px);
+  font-weight: 300;
+  color: #F5EDE0;
+  text-align: center;
+  line-height: 1;
+  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+}
+
+.selector-title em {
+  font-style: italic;
+  color: #D4AF76;
+}
+
+.selector-sub {
+  font-size: 14px;
+  font-weight: 300;
+  color: rgba(245,237,224,0.35);
+  margin-bottom: 56px;
+  letter-spacing: 0.1em;
+}
+
+.room-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 900px;
+  width: 90%;
+}
+
+.room-card {
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 36px 28px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  background: rgba(255,255,255,0.02);
+}
+
+.room-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.room-card:hover { transform: translateY(-4px); }
+.room-card:hover::before { opacity: 1; }
+
+/* Vanity card */
+.room-card[data-pick="vanity"]::before {
+  background: radial-gradient(ellipse at top, rgba(196,117,106,0.08), transparent 70%);
+  border-top: 2px solid rgba(212,175,118,0.4);
+}
+.room-card[data-pick="vanity"]:hover {
+  border-color: rgba(212,175,118,0.25);
+  box-shadow: 0 20px 48px rgba(196,117,106,0.12);
+}
+
+/* Den card */
+.room-card[data-pick="den"]::before {
+  background: radial-gradient(ellipse at top, rgba(139,69,19,0.1), transparent 70%);
+}
+.room-card[data-pick="den"]:hover {
+  border-color: rgba(184,140,60,0.25);
+  box-shadow: 0 20px 48px rgba(184,140,60,0.1);
+}
+
+/* Chat card */
+.room-card[data-pick="chat"]::before {
+  background: radial-gradient(ellipse at top, rgba(130,100,255,0.1), transparent 70%);
+}
+.room-card[data-pick="chat"]:hover {
+  border-color: rgba(130,100,255,0.25);
+  box-shadow: 0 20px 48px rgba(130,100,255,0.1);
+}
+
+.card-number {
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: rgba(245,237,224,0.2);
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.card-icon {
+  font-size: 32px;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.card-name {
+  font-family: 'Cormorant', serif;
+  font-size: 26px;
+  font-weight: 400;
+  color: #F5EDE0;
+  margin-bottom: 6px;
+  letter-spacing: 0.03em;
+}
+
+.card-name[data-pick="vanity"] { color: #D4AF76; }
+
+.card-tagline {
+  font-size: 12px;
+  font-weight: 300;
+  font-style: italic;
+  color: rgba(245,237,224,0.4);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.card-desc {
+  font-size: 12px;
+  font-weight: 300;
+  color: rgba(245,237,224,0.3);
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.card-enter {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(245,237,224,0.25);
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.room-card:hover .card-enter { color: rgba(245,237,224,0.7); }
+
+/* ══════════════════════════════════════
+   TOP DECO — different per theme
+══════════════════════════════════════ */
+.top-deco {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  z-index: 100;
+  transition: background 0.6s ease;
+}
+
+[data-theme="vanity"] .top-deco {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(196,117,106,0.3) 20%,
+    rgba(212,175,118,0.8) 40%,
+    rgba(212,175,118,1) 50%,
+    rgba(212,175,118,0.8) 60%,
+    rgba(196,117,106,0.3) 80%,
+    transparent 100%);
+  box-shadow: 0 0 20px rgba(212,175,118,0.3);
+}
+
+[data-theme="den"] .top-deco {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(139,69,19,0.3) 20%,
+    rgba(184,140,60,0.8) 40%,
+    rgba(184,140,60,1) 50%,
+    rgba(184,140,60,0.8) 60%,
+    rgba(139,69,19,0.3) 80%,
+    transparent 100%);
+  box-shadow: 0 0 20px rgba(184,140,60,0.25);
+}
+
+[data-theme="chat"] .top-deco {
+  background: linear-gradient(90deg,
+    rgba(130,100,255,0.8) 0%,
+    rgba(255,107,107,0.8) 33%,
+    rgba(0,212,170,0.8) 66%,
+    rgba(130,100,255,0.8) 100%);
+  box-shadow: 0 0 20px rgba(130,100,255,0.2);
+  animation: chatBar 4s linear infinite;
+  background-size: 200% 100%;
+}
+
+@keyframes chatBar {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+
+/* Vanity candle glow dots */
+[data-theme="vanity"] .top-deco::after {
+  content: '· · · · · · · · · · · · · · · · · · · · · · · · · ·';
+  position: absolute;
+  top: 8px; left: 0; right: 0;
+  text-align: center;
+  font-size: 8px;
+  letter-spacing: 0.6em;
+  color: rgba(212,175,118,0.25);
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════ */
+.app {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: 64px 1fr;
+  padding-top: 3px;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--border);
+  transition: border-color 0.4s;
+}
+
+.logo {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.logo-text {
+  font-family: 'Cormorant', serif;
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--text);
+  transition: color 0.4s;
+}
+
+.logo-accent {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.logo-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin: 0 2px 4px;
+  opacity: 0.7;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.topbar-nav {
+  display: flex;
+  gap: 2px;
+  background: var(--bg2);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.nav-btn {
+  font-family: 'Jost', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.nav-btn:hover { color: var(--text); }
+
+.nav-btn.active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.theme-switcher {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.theme-pip {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.theme-pip:hover { transform: scale(1.3); }
+.theme-pip.active { transform: scale(1.2); box-shadow: 0 0 8px currentColor; }
+.theme-pip.vanity { background: #D4AF76; color: #D4AF76; }
+.theme-pip.den { background: #B88C3C; color: #B88C3C; }
+.theme-pip.chat { background: #8264FF; color: #8264FF; }
+
+.room-label {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  transition: color 0.4s;
+}
+
+.room-label span {
+  color: var(--accent);
+  font-style: italic;
+  font-family: 'Cormorant', serif;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+}
+
+/* ── MAIN ── */
+.main {
+  overflow: hidden;
+  position: relative;
+}
+
+.panel {
+  display: none;
+  height: 100%;
+  padding: 28px 32px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface) transparent;
+}
+.panel::-webkit-scrollbar { width: 3px; }
+.panel::-webkit-scrollbar-thumb { background: var(--surface); border-radius: 2px; }
+.panel.active { display: flex; flex-direction: column; }
+
+/* ══════════════════════════════════════
+   PANEL: THE ROOM (HOME)
+══════════════════════════════════════ */
+.room-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr 280px;
+  gap: 20px;
+  height: 100%;
+}
+
+/* Left column */
+.room-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 24px;
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.card-label {
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--text-sub);
+  margin-bottom: 16px;
+  transition: color 0.4s;
+}
+
+.welcome-head {
+  font-family: 'Cormorant', serif;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 12px;
+  transition: color 0.4s;
+}
+
+.welcome-head em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.welcome-body {
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.8;
+  color: var(--text-dim);
+  margin-bottom: 20px;
+  transition: color 0.4s;
+}
+
+.btn {
+  font-family: 'Jost', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 12px 22px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 2px;
+}
+
+.btn-accent {
+  background: var(--accent);
+  color: var(--bg);
+}
+.btn-accent:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover {
+  color: var(--text);
+  border-color: var(--border2);
+}
+
+.btn-sm { padding: 10px 18px; font-size: 10px; }
+.btn-block { width: 100%; justify-content: center; }
+
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Atmosphere card — different per theme */
+.atmosphere {
+  flex: 1;
+}
+
+.atm-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.atm-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.atm-name {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  width: 72px;
+  flex-shrink: 0;
+  transition: color 0.4s;
+}
+
+.atm-track {
+  flex: 1;
+  height: 2px;
+  background: rgba(255,255,255,0.04);
+  position: relative;
+}
+
+.atm-fill {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  background: var(--accent);
+  transition: width 1.2s cubic-bezier(0.4,0,0.2,1), background 0.4s;
+}
+
+.atm-val {
+  font-family: 'Cormorant', serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--accent);
+  min-width: 32px;
+  text-align: right;
+  transition: color 0.4s;
+}
+
+/* Center — Stage */
+.room-center {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stage {
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.stage-top {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stage-title {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  transition: color 0.4s;
+}
+
+.phase-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  transition: color 0.4s, border-color 0.4s;
+}
+
+.phase-pip {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: blink 2s infinite;
+  transition: background 0.4s;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.stage-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  padding: 32px;
+  position: relative;
+}
+
+.stage-light {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 200px; height: 160px;
+  background: radial-gradient(ellipse at top, rgba(255,255,255,0.025), transparent 70%);
+  pointer-events: none;
+}
+
+.outfit-display {
+  width: 120px; height: 180px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56px;
+  position: relative;
+  z-index: 1;
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.outfit-display::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 40%;
+  background: linear-gradient(to top, rgba(0,0,0,0.4), transparent);
+  pointer-events: none;
+}
+
+.outfit-celeb {
+  font-family: 'Cormorant', serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--text);
+  letter-spacing: 0.05em;
+  position: relative;
+  z-index: 1;
+  transition: color 0.4s;
+}
+
+.outfit-event {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-sub);
+  position: relative;
+  z-index: 1;
+  transition: color 0.4s;
+}
+
+/* Takes feed */
+.takes {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 0;
+  max-height: 140px;
+  overflow: hidden;
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.takes-header {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--text-sub);
+  transition: border-color 0.4s, color 0.4s;
+}
+
+.takes-body {
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  max-height: 100px;
+  scrollbar-width: none;
+}
+.takes-body::-webkit-scrollbar { display: none; }
+
+.take {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  animation: fadeUp 0.3s ease both;
+}
+
+.take-init {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  width: 20px;
+  flex-shrink: 0;
+  padding-top: 1px;
+  transition: color 0.4s;
+}
+
+.take-text {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text-dim);
+  line-height: 1.4;
+  transition: color 0.4s;
+  font-style: italic;
+  font-family: 'Cormorant', serif;
+}
+
+/* Right column */
+.room-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Players */
+.players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.player-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg3);
+  border: 1px solid rgba(255,255,255,0.03);
+  border-radius: 2px;
+  transition: background 0.3s;
+  animation: slideIn 0.3s ease both;
+}
+
+.player-item:nth-child(1) { animation-delay: 0.05s; }
+.player-item:nth-child(2) { animation-delay: 0.1s; }
+.player-item:nth-child(3) { animation-delay: 0.15s; }
+.player-item:nth-child(4) { animation-delay: 0.2s; }
+
+.p-initial {
+  width: 28px; height: 28px;
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cormorant', serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent);
+  flex-shrink: 0;
+  transition: border-color 0.4s, color 0.4s;
+}
+
+.p-info { flex: 1; min-width: 0; }
+.p-name {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text);
+  letter-spacing: 0.03em;
+  transition: color 0.4s;
+}
+.p-sub {
+  font-size: 10px;
+  color: var(--text-sub);
+  letter-spacing: 0.05em;
+  transition: color 0.4s;
+}
+
+.p-status {
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+.p-status.done { color: var(--accent3); }
+
+/* Scoreboard */
+.score-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.score-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: fadeUp 0.4s ease both;
+}
+.score-row:nth-child(1) { animation-delay: 0.1s; }
+.score-row:nth-child(2) { animation-delay: 0.18s; }
+
+.sr-num {
+  font-family: 'Cormorant', serif;
+  font-size: 16px;
+  color: var(--text-sub);
+  width: 16px;
+  text-align: center;
+  transition: color 0.4s;
+}
+.sr-num.top { color: var(--accent); }
+
+.sr-label { flex: 1; font-size: 12px; font-weight: 300; color: var(--text-dim); transition: color 0.4s; }
+
+.sr-bar {
+  flex: 1;
+  height: 2px;
+  background: rgba(255,255,255,0.04);
+  position: relative;
+}
+.sr-fill {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  background: var(--accent);
+  transition: width 1s ease, background 0.4s;
+}
+
+.sr-score {
+  font-family: 'Cormorant', serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--accent);
+  min-width: 36px;
+  text-align: right;
+  transition: color 0.4s;
+}
+
+/* ══════════════════════════════════════
+   PANEL: HOW TO PLAY
+══════════════════════════════════════ */
+#panel-how {
+  align-items: center;
+  justify-content: center;
+}
+
+.how-wrap {
+  max-width: 960px;
+  width: 100%;
+}
+
+.how-heading {
+  margin-bottom: 40px;
+}
+
+.how-heading h2 {
+  font-family: 'Cormorant', serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+  transition: color 0.4s;
+}
+
+.how-heading h2 em { font-style: italic; color: var(--accent); }
+
+.how-heading p {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  transition: color 0.4s;
+}
+
+.steps-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  margin-bottom: 20px;
+}
+
+.step-block {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 28px 24px;
+  transition: background 0.4s, border-color 0.4s;
+  animation: fadeUp 0.4s ease both;
+  position: relative;
+  overflow: hidden;
+}
+
+.step-block::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease, background 0.4s;
+}
+.step-block:hover::after { transform: scaleX(1); }
+
+.step-block:nth-child(1) { animation-delay: 0.05s; }
+.step-block:nth-child(2) { animation-delay: 0.1s; }
+.step-block:nth-child(3) { animation-delay: 0.15s; }
+.step-block:nth-child(4) { animation-delay: 0.2s; }
+
+.sn {
+  font-family: 'Cormorant', serif;
+  font-size: 56px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.04);
+  line-height: 1;
+  margin-bottom: 12px;
+  transition: color 0.4s;
+}
+
+.st {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+  transition: color 0.4s;
+}
+
+.sd {
+  font-family: 'Cormorant', serif;
+  font-size: 16px;
+  font-style: italic;
+  color: var(--text-dim);
+  line-height: 1.6;
+  transition: color 0.4s;
+}
+
+.phases-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+
+.phase-block {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 28px 24px;
+  transition: all 0.4s;
+  animation: fadeUp 0.4s ease both;
+}
+.phase-block:nth-child(1) { animation-delay: 0.25s; }
+.phase-block:nth-child(2) {
+  animation-delay: 0.3s;
+  background: var(--surface);
+  border-color: var(--border2);
+}
+.phase-block:nth-child(3) { animation-delay: 0.35s; }
+
+.ph-num {
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--text-sub);
+  margin-bottom: 14px;
+  transition: color 0.4s;
+}
+
+.ph-title {
+  font-family: 'Cormorant', serif;
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 10px;
+  transition: color 0.4s;
+}
+
+.ph-title em { font-style: italic; color: var(--accent); }
+
+.ph-desc {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text-dim);
+  line-height: 1.7;
+  transition: color 0.4s;
+}
+
+/* ══════════════════════════════════════
+   PANEL: CREATE / JOIN — shared
+══════════════════════════════════════ */
+.action-panel {
+  align-items: center;
+  justify-content: center;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  max-width: 800px;
+  width: 100%;
+}
+
+.action-left {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 40px 36px;
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.action-right {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 40px 36px;
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.action-title {
+  font-family: 'Cormorant', serif;
+  font-size: 30px;
+  font-weight: 300;
+  color: var(--text);
+  margin-bottom: 6px;
+  transition: color 0.4s;
+}
+.action-title em { font-style: italic; color: var(--accent); }
+
+.action-sub {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--text-dim);
+  margin-bottom: 32px;
+  line-height: 1.7;
+  transition: color 0.4s;
+}
+
+.field { margin-bottom: 18px; }
+
+.field-label {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--text-sub);
+  margin-bottom: 8px;
+  transition: color 0.4s;
+}
+
+.field-input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Jost', sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  padding: 12px 14px;
+  border-radius: 2px;
+  outline: none;
+  transition: border-color 0.2s, background 0.4s;
+  letter-spacing: 0.05em;
+}
+.field-input:focus { border-color: var(--accent); }
+.field-input::placeholder { color: var(--text-sub); font-style: italic; font-family: 'Cormorant', serif; }
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Code boxes */
+.code-boxes {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.code-box {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-family: 'Cormorant', serif;
+  font-size: 40px;
+  font-weight: 400;
+  text-align: center;
+  padding: 14px 4px;
+  border-radius: 2px;
+  outline: none;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  letter-spacing: 0.1em;
+}
+.code-box:focus {
+  border-color: var(--accent);
+  background: rgba(255,255,255,0.02);
+}
+
+/* Right side info */
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.info-item {
+  display: flex;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  transition: border-color 0.4s;
+}
+.info-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+.info-icon {
+  width: 32px; height: 32px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: border-color 0.4s;
+}
+
+.info-text h4 {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--text);
+  margin-bottom: 3px;
+  transition: color 0.4s;
+}
+
+.info-text p {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--text-dim);
+  line-height: 1.6;
+  transition: color 0.4s;
+}
+
+/* Open rooms */
+.open-rooms {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.or-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg3);
+  border: 1px solid rgba(255,255,255,0.02);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.or-item:hover {
+  border-color: var(--border2);
+  transform: translateX(4px);
+}
+
+.or-code {
+  font-family: 'Cormorant', serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--accent);
+  min-width: 44px;
+  transition: color 0.4s;
+}
+
+.or-info { flex: 1; }
+.or-name {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text);
+  letter-spacing: 0.05em;
+  transition: color 0.4s;
+}
+.or-meta {
+  font-size: 11px;
+  color: var(--text-sub);
+  font-style: italic;
+  font-family: 'Cormorant', serif;
+  transition: color 0.4s;
+}
+
+.or-arrow {
+  font-size: 14px;
+  color: var(--text-sub);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.2s;
+}
+.or-item:hover .or-arrow { opacity: 1; transform: translateX(0); }
+
+/* ── KEYFRAMES ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── MOBILE ── */
+@media (max-width: 900px) {
+  html,body{overflow:auto;}
+  .app{grid-template-rows:auto 1fr;height:auto;}
+  .room-cards{grid-template-columns:1fr;}
+  .room-grid{grid-template-columns:1fr;}
+  .steps-row{grid-template-columns:1fr 1fr;}
+  .phases-row{grid-template-columns:1fr;}
+  .action-grid{grid-template-columns:1fr;}
+  .topbar{flex-wrap:wrap;gap:12px;padding:16px;}
+  .panel{padding:20px;}
+}
+</style>
+</head>
+<body data-theme="vanity">
+
+<!-- TOP DECO LINE -->
+<div class="top-deco"></div>
+
+<!-- ══════════════════════════════════════
+     ROOM SELECTOR
+══════════════════════════════════════ -->
+<div class="room-selector" id="selector">
+  <div class="selector-eyebrow">Welcome to</div>
+  <h1 class="selector-title">Carpet <em>Call</em></h1>
+  <p class="selector-sub">Choose your room for tonight</p>
+
+  <div class="room-cards">
+
+    <div class="room-card" data-pick="vanity" onclick="enterRoom('vanity')">
+      <div class="card-number">01</div>
+      <span class="card-icon">🕯️</span>
+      <div class="card-name">The Vanity Room</div>
+      <div class="card-tagline">For the girls. Champagne in hand.</div>
+      <p class="card-desc">You're all on FaceTime. Someone's doing their lashes. The Met Gala looks are on the TV and the takes are unfiltered.</p>
+      <div class="card-enter">Enter the room <span>→</span></div>
+    </div>
+
+    <div class="room-card" data-pick="den" onclick="enterRoom('den')">
+      <div class="card-number">02</div>
+      <span class="card-icon">🥃</span>
+      <div class="card-name">The Den</div>
+      <div class="card-tagline">Old money. Slow opinions. Loud convictions.</div>
+      <p class="card-desc">The kind of room where a 4 out of 10 is delivered calmly, with eye contact, and defended until the end.</p>
+      <div class="card-enter">Enter the room <span>→</span></div>
+    </div>
+
+    <div class="room-card" data-pick="chat" onclick="enterRoom('chat')">
+      <div class="card-number">03</div>
+      <span class="card-icon">📲</span>
+      <div class="card-name">The Groupchat</div>
+      <div class="card-tagline">2am. No filter. Someone's eating cereal.</div>
+      <p class="card-desc">Pyjamas on. Takes are fully unhinged. Nobody is being rational and that is entirely the point.</p>
+      <div class="card-enter">Enter the room <span>→</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════ -->
+<div class="app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo">
+      <span class="logo-text">Carpet <span class="logo-accent">Call</span></span>
+      <span class="logo-dot"></span>
+    </div>
+
+    <div class="topbar-nav">
+      <button class="nav-btn active" onclick="showPanel('home')">The Room</button>
+      <button class="nav-btn" onclick="showPanel('how')">How to Play</button>
+      <button class="nav-btn" onclick="showPanel('create')">Create</button>
+      <button class="nav-btn" onclick="showPanel('join')">Join</button>
+    </div>
+
+    <div class="topbar-right">
+      <div class="theme-switcher">
+        <div class="theme-pip vanity active" onclick="switchTheme('vanity')" title="The Vanity Room"></div>
+        <div class="theme-pip den" onclick="switchTheme('den')" title="The Den"></div>
+        <div class="theme-pip chat" onclick="switchTheme('chat')" title="The Groupchat"></div>
+      </div>
+      <div class="room-label">In: <span id="room-name-label">The Vanity Room</span></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- THE ROOM -->
+    <div class="panel active" id="panel-home">
+      <div class="room-grid">
+
+        <!-- LEFT -->
+        <div class="room-left">
+          <div class="card">
+            <div class="card-label">Tonight</div>
+            <div class="welcome-head">Rate the look.<br><em>No mercy.</em></div>
+            <p class="welcome-body">Get on a call. Open a room. Talk first, vote blind, reveal together. The chaos is the point.</p>
+            <div class="btn-row">
+              <button class="btn btn-accent btn-sm" onclick="showPanel('create')">Create Room</button>
+              <button class="btn btn-ghost btn-sm" onclick="showPanel('join')">Join</button>
+            </div>
+          </div>
+
+          <div class="card atmosphere">
+            <div class="card-label">Room Atmosphere</div>
+            <div class="atm-rows">
+              <div class="atm-row">
+                <div class="atm-name">Drama</div>
+                <div class="atm-track"><div class="atm-fill" style="width:88%"></div></div>
+                <div class="atm-val">88</div>
+              </div>
+              <div class="atm-row">
+                <div class="atm-name">Opinions</div>
+                <div class="atm-track"><div class="atm-fill" style="width:96%"></div></div>
+                <div class="atm-val">96</div>
+              </div>
+              <div class="atm-row">
+                <div class="atm-name">Chaos</div>
+                <div class="atm-track"><div class="atm-fill" style="width:74%"></div></div>
+                <div class="atm-val">74</div>
+              </div>
+              <div class="atm-row">
+                <div class="atm-name">Slay</div>
+                <div class="atm-track"><div class="atm-fill" style="width:91%"></div></div>
+                <div class="atm-val">91</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CENTER -->
+        <div class="room-center">
+          <div class="stage">
+            <div class="stage-top">
+              <div class="stage-title">Now Judging · Look 03 of 08</div>
+              <div class="phase-tag">
+                <div class="phase-pip"></div>
+                Phase II · Voting
+              </div>
+            </div>
+            <div class="stage-body">
+              <div class="stage-light"></div>
+              <div class="outfit-display">👗</div>
+              <div class="outfit-celeb">Zendaya</div>
+              <div class="outfit-event">Met Gala · 2025</div>
+            </div>
+          </div>
+
+          <div class="takes">
+            <div class="takes-header">Hot Takes</div>
+            <div class="takes-body">
+              <div class="take">
+                <div class="take-init">A —</div>
+                <div class="take-text">She understood the assignment and then some.</div>
+              </div>
+              <div class="take">
+                <div class="take-init">C —</div>
+                <div class="take-text">The theme said tailoring. She said sculpture. I'm giving a 10.</div>
+              </div>
+              <div class="take">
+                <div class="take-init">T —</div>
+                <div class="take-text">Shoes are not it for me but the dress? Flawless.</div>
+              </div>
+              <div class="take">
+                <div class="take-init">K —</div>
+                <div class="take-text">There is nobody else on that carpet tonight.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="room-right">
+          <div class="card">
+            <div class="card-label">In the Room · 4 guests</div>
+            <div class="players-list">
+              <div class="player-item">
+                <div class="p-initial">A</div>
+                <div class="p-info">
+                  <div class="p-name">Amara</div>
+                  <div class="p-sub">Host</div>
+                </div>
+                <div class="p-status done">✓</div>
+              </div>
+              <div class="player-item">
+                <div class="p-initial">C</div>
+                <div class="p-info">
+                  <div class="p-name">Chichi</div>
+                  <div class="p-sub">Voted</div>
+                </div>
+                <div class="p-status done">✓</div>
+              </div>
+              <div class="player-item">
+                <div class="p-initial">T</div>
+                <div class="p-info">
+                  <div class="p-name">Temi</div>
+                  <div class="p-sub">Deciding…</div>
+                </div>
+                <div class="p-status">—</div>
+              </div>
+              <div class="player-item">
+                <div class="p-initial">K</div>
+                <div class="p-info">
+                  <div class="p-name">Kemi</div>
+                  <div class="p-sub">Voted</div>
+                </div>
+                <div class="p-status done">✓</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Scoreboard · 2 looks</div>
+            <div class="score-rows">
+              <div class="score-row">
+                <div class="sr-num top">I</div>
+                <div class="sr-label">Look 01</div>
+                <div class="sr-bar"><div class="sr-fill" style="width:88%"></div></div>
+                <div class="sr-score">8.8</div>
+              </div>
+              <div class="score-row">
+                <div class="sr-num">II</div>
+                <div class="sr-label">Look 02</div>
+                <div class="sr-bar"><div class="sr-fill" style="width:62%"></div></div>
+                <div class="sr-score">6.2</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- HOW TO PLAY -->
+    <div class="panel" id="panel-how">
+      <div class="how-wrap">
+        <div class="how-heading">
+          <h2>The game is simple.<br><em>The arguments are not.</em></h2>
+          <p>Fashion Police meets Kahoot. On a call. For grown-ups.</p>
+        </div>
+
+        <div class="steps-row">
+          <div class="step-block">
+            <div class="sn">I</div>
+            <div class="st">Get on a call</div>
+            <div class="sd">FaceTime, WhatsApp, wherever. Carpet Call runs alongside — it fuels the call, not replaces it.</div>
+          </div>
+          <div class="step-block">
+            <div class="sn">II</div>
+            <div class="st">Open a room</div>
+            <div class="sd">Host creates a room. Gets a 4-letter code. Everyone joins in seconds from anywhere in the world.</div>
+          </div>
+          <div class="step-block">
+            <div class="sn">III</div>
+            <div class="st">Drop the look</div>
+            <div class="sd">Host reveals the outfit. Everyone talks first — drag it, defend it, dissect it. Then voting opens.</div>
+          </div>
+          <div class="step-block">
+            <div class="sn">IV</div>
+            <div class="st">The reveal</div>
+            <div class="sd">All scores drop simultaneously. No one saw anyone else's verdict until this moment. Then the real conversation begins.</div>
+          </div>
+        </div>
+
+        <div class="phases-row">
+          <div class="phase-block">
+            <div class="ph-num">Phase 01 · Talk First</div>
+            <div class="ph-title"><em>Deliberation</em></div>
+            <p class="ph-desc">The outfit drops. Everyone shares their read before a single number is cast. No scores yet — just unfiltered opinions in the room.</p>
+          </div>
+          <div class="phase-block">
+            <div class="ph-num">Phase 02 · Vote Blind</div>
+            <div class="ph-title"><em>The Vote</em></div>
+            <p class="ph-desc">Rate out of 10. Your score is locked — no one sees it until everyone has voted. No influencing. No second-guessing. Commit.</p>
+          </div>
+          <div class="phase-block">
+            <div class="ph-num">Phase 03 · Reveal Together</div>
+            <div class="ph-title"><em>The Verdict</em></div>
+            <p class="ph-desc">All scores reveal at once. The shock, the vindication, the "I cannot believe you gave her a 4" — this is the whole point.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATE ROOM -->
+    <div class="panel action-panel" id="panel-create">
+      <div class="action-grid">
+        <div class="action-left">
+          <div class="action-title">Open a <em>Room</em></div>
+          <p class="action-sub">You're the host. You control when looks drop, when voting opens, when scores hit the table. Share the code and let your people in.</p>
+
+          <div class="field">
+            <label class="field-label">Your Name</label>
+            <input class="field-input" type="text" placeholder="How you'll appear in the room" />
+          </div>
+          <div class="field">
+            <label class="field-label">Room Name</label>
+            <input class="field-input" type="text" placeholder="e.g. Met Gala 2025, Oscars Night" />
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label">Max Players</label>
+              <input class="field-input" type="number" placeholder="6" min="2" max="20" />
+            </div>
+            <div class="field">
+              <label class="field-label">Event</label>
+              <input class="field-input" type="text" placeholder="Met Gala" />
+            </div>
+          </div>
+          <button class="btn btn-accent btn-block" style="margin-top:8px;">Open the Carpet →</button>
+        </div>
+
+        <div class="action-right">
+          <div class="action-title">As host <em>you control</em></div>
+          <p class="action-sub" style="margin-bottom:20px;">The room moves at your pace. Nobody advances without you.</p>
+          <div class="info-list">
+            <div class="info-item">
+              <div class="info-icon">I</div>
+              <div class="info-text">
+                <h4>Drop looks one by one</h4>
+                <p>Paste an image link or name the look. Each outfit is a new round.</p>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">II</div>
+              <div class="info-text">
+                <h4>Control every phase</h4>
+                <p>You decide when deliberation ends, when voting opens, when scores reveal.</p>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">III</div>
+              <div class="info-text">
+                <h4>Share the final verdict</h4>
+                <p>Full scoreboard auto-generates. One tap to copy to the group chat.</p>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">✦</div>
+              <div class="info-text">
+                <h4>4-letter room code</h4>
+                <p>Your room gets a code like GLAM or LEWK. Private, instant, shareable.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOIN ROOM -->
+    <div class="panel action-panel" id="panel-join">
+      <div class="action-grid">
+        <div class="action-left">
+          <div class="action-title">Enter a <em>Room</em></div>
+          <p class="action-sub">Get the code from whoever's hosting. Type it in below. Make sure you're already on the call before you join.</p>
+
+          <div class="field">
+            <label class="field-label">Your Name</label>
+            <input class="field-input" type="text" placeholder="How you'll appear in the room" />
+          </div>
+
+          <div class="field">
+            <label class="field-label">Room Code</label>
+            <div class="code-boxes">
+              <input class="code-box" type="text" maxlength="1" />
+              <input class="code-box" type="text" maxlength="1" />
+              <input class="code-box" type="text" maxlength="1" />
+              <input class="code-box" type="text" maxlength="1" />
+            </div>
+          </div>
+
+          <button class="btn btn-accent btn-block">Enter the Room →</button>
+        </div>
+
+        <div class="action-right">
+          <div class="action-title">Open <em>right now</em></div>
+          <p class="action-sub" style="margin-bottom:20px;">Don't see your room? Ask the host to share the code directly.</p>
+          <div class="open-rooms">
+            <div class="or-item">
+              <div class="or-code">GLAM</div>
+              <div class="or-info">
+                <div class="or-name">Met Gala 2025</div>
+                <div class="or-meta">4 in room · voting now</div>
+              </div>
+              <div class="or-arrow">→</div>
+            </div>
+            <div class="or-item">
+              <div class="or-code">DRIP</div>
+              <div class="or-info">
+                <div class="or-name">Grammy Looks</div>
+                <div class="or-meta">3 in room · deliberating</div>
+              </div>
+              <div class="or-arrow">→</div>
+            </div>
+            <div class="or-item">
+              <div class="or-code">LEWK</div>
+              <div class="or-info">
+                <div class="or-name">Oscars Night</div>
+                <div class="or-meta">6 in room · scores revealed</div>
+              </div>
+              <div class="or-arrow">→</div>
+            </div>
+            <div class="or-item">
+              <div class="or-code">SLAY</div>
+              <div class="or-info">
+                <div class="or-name">Friday Night Fits</div>
+                <div class="or-meta">2 in room · waiting for host</div>
+              </div>
+              <div class="or-arrow">→</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const themeNames = {
+  vanity: 'The Vanity Room',
+  den: 'The Den',
+  chat: 'The Groupchat'
+};
+
+function enterRoom(theme) {
+  document.getElementById('selector').classList.add('hidden');
+  switchTheme(theme);
+}
+
+function switchTheme(theme) {
+  document.body.setAttribute('data-theme', theme);
+  document.querySelectorAll('.theme-pip').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.theme-pip.${theme}`).classList.add('active');
+  document.getElementById('room-name-label').textContent = themeNames[theme];
+}
+
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  const map = { home:0, how:1, create:2, join:3 };
+  if (map[id] !== undefined) {
+    document.querySelectorAll('.nav-btn')[map[id]].classList.add('active');
+  }
+}
+
+// Code box auto-advance
+document.querySelectorAll('.code-box').forEach((box, i, boxes) => {
+  box.addEventListener('input', () => {
+    box.value = box.value.toUpperCase();
+    if (box.value && i < boxes.length - 1) boxes[i+1].focus();
+  });
+  box.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !box.value && i > 0) boxes[i-1].focus();
+  });
+});
+</script>
+</body>
+</html>
