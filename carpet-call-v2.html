@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carpet Call — Rate the Look. Live.</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Josefin+Sans:ital,wght@0,200;0,300;0,400;0,600;1,200;1,300&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --cream: #F5EDE0;
+  --parchment: #EDE0CC;
+  --burgundy: #6B2737;
+  --burgundy-deep: #4A1825;
+  --gold: #B8965A;
+  --gold-light: #D4AF76;
+  --blush: #D4A5A0;
+  --ink: #2A1A1F;
+  --muted: #9B8070;
+  --warm-white: #FAF5EE;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Josefin Sans', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── NOISE ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 300 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── LAYOUT ── */
+.app {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  height: 100vh;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 40px;
+}
+
+/* ── HEADER ── */
+header {
+  padding: 28px 0 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  border-bottom: 1px solid rgba(107,39,55,0.15);
+  padding-bottom: 20px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
+}
+
+.header-tag {
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.header-season {
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.logo-center {
+  text-align: center;
+}
+
+.logo-main {
+  font-family: 'Josefin Sans', sans-serif;
+  font-weight: 200;
+  font-size: clamp(32px, 4vw, 52px);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.logo-main span {
+  color: var(--burgundy);
+}
+
+.logo-rule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  justify-content: center;
+}
+
+.logo-rule::before, .logo-rule::after {
+  content: '';
+  flex: 1;
+  max-width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold));
+}
+.logo-rule::after {
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+
+.logo-sub {
+  font-size: 9px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.header-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 20px;
+  padding-top: 4px;
+}
+
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--burgundy);
+}
+
+.live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--burgundy);
+  animation: pulse 2s infinite;
+}
+
+/* ── NAV TABS ── */
+.nav-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(107,39,55,0.12);
+  margin-top: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 16px 28px;
+  cursor: pointer;
+  transition: all 0.25s;
+  white-space: nowrap;
+  margin-bottom: -1px;
+}
+
+.tab-btn:hover {
+  color: var(--ink);
+}
+
+.tab-btn.active {
+  color: var(--burgundy);
+  border-bottom-color: var(--burgundy);
+}
+
+/* ── CONTENT AREA ── */
+.content {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--parchment) transparent;
+}
+.content::-webkit-scrollbar { width: 4px; }
+.content::-webkit-scrollbar-track { background: transparent; }
+.content::-webkit-scrollbar-thumb { background: var(--parchment); border-radius: 2px; }
+
+.panel {
+  display: none;
+  height: 100%;
+}
+.panel.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ══════════════════════════════
+   PANEL: HOME
+══════════════════════════════ */
+.home-panel {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  height: 100%;
+  gap: 0;
+}
+
+.home-panel.active {
+  display: grid;
+}
+
+.home-left {
+  padding: 48px 48px 48px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.home-divider {
+  background: rgba(107,39,55,0.12);
+}
+
+.home-right {
+  padding: 48px 0 48px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.home-headline {
+  font-family: 'Libre Baskerville', serif;
+  font-size: clamp(36px, 4vw, 58px);
+  line-height: 1.1;
+  color: var(--ink);
+  font-weight: 400;
+}
+
+.home-headline em {
+  font-style: italic;
+  color: var(--burgundy);
+}
+
+.home-body {
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-top: 24px;
+  max-width: 400px;
+}
+
+.home-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: var(--burgundy);
+  color: var(--warm-white);
+}
+.btn-primary:hover {
+  background: var(--burgundy-deep);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(107,39,55,0.2);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--burgundy);
+  border: 1px solid rgba(107,39,55,0.3);
+}
+.btn-secondary:hover {
+  border-color: var(--burgundy);
+  background: rgba(107,39,55,0.04);
+}
+
+/* Score cards on home */
+.home-scores {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.score-strip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--warm-white);
+  border: 1px solid rgba(107,39,55,0.08);
+  animation: fadeRight 0.5s ease both;
+}
+
+.score-strip:nth-child(1) { animation-delay: 0.1s; }
+.score-strip:nth-child(2) { animation-delay: 0.2s; }
+.score-strip:nth-child(3) { animation-delay: 0.3s; }
+.score-strip:nth-child(4) { animation-delay: 0.4s; }
+
+.ss-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  color: var(--warm-white);
+}
+
+.ss-name {
+  flex: 1;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.ss-comment {
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--muted);
+  flex: 2;
+}
+
+.ss-score {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--burgundy);
+  min-width: 40px;
+  text-align: right;
+}
+
+.home-event-tag {
+  margin-top: 24px;
+}
+
+.event-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(107,39,55,0.06);
+  border: 1px solid rgba(107,39,55,0.12);
+  padding: 8px 16px;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--burgundy);
+}
+
+/* ══════════════════════════════
+   PANEL: HOW TO PLAY
+══════════════════════════════ */
+.how-panel {
+  padding: 48px 0;
+}
+
+.how-panel.active { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
+
+.how-left h2 {
+  font-family: 'Libre Baskerville', serif;
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--ink);
+  margin-bottom: 32px;
+}
+
+.how-left h2 em { font-style: italic; color: var(--burgundy); }
+
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.step-item {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 20px;
+  padding: 24px 0;
+  border-bottom: 1px solid rgba(107,39,55,0.08);
+  animation: fadeUp 0.5s ease both;
+}
+
+.step-item:nth-child(1) { animation-delay: 0.05s; }
+.step-item:nth-child(2) { animation-delay: 0.1s; }
+.step-item:nth-child(3) { animation-delay: 0.15s; }
+.step-item:nth-child(4) { animation-delay: 0.2s; }
+
+.step-n {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 32px;
+  color: rgba(107,39,55,0.15);
+  font-style: italic;
+  line-height: 1;
+  padding-top: 4px;
+}
+
+.step-title {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--burgundy);
+  margin-bottom: 6px;
+}
+
+.step-desc {
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+/* Phases */
+.how-right {
+  border-left: 1px solid rgba(107,39,55,0.12);
+  padding-left: 60px;
+}
+
+.how-right h3 {
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 28px;
+}
+
+.phase-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.phase-item {
+  padding: 24px 0;
+  border-bottom: 1px solid rgba(107,39,55,0.08);
+}
+
+.phase-item:last-child { border-bottom: none; }
+
+.phase-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.phase-icon {
+  width: 36px; height: 36px;
+  background: var(--burgundy);
+  color: var(--warm-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.phase-name {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.phase-tag-small {
+  margin-left: auto;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border: 1px solid rgba(184,150,90,0.3);
+  padding: 3px 10px;
+}
+
+.phase-desc {
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted);
+  padding-left: 52px;
+}
+
+/* ══════════════════════════════
+   PANEL: EVENTS
+══════════════════════════════ */
+.events-panel.active {
+  display: block;
+  padding: 48px 0;
+}
+
+.events-intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 36px;
+}
+
+.events-intro h2 {
+  font-family: 'Libre Baskerville', serif;
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 400;
+  color: var(--ink);
+}
+.events-intro h2 em { font-style: italic; color: var(--burgundy); }
+
+.events-intro p {
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 280px;
+  text-align: right;
+  line-height: 1.6;
+}
+
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+
+.event-card {
+  background: var(--warm-white);
+  padding: 28px;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+  border: 1px solid rgba(107,39,55,0.06);
+  animation: fadeUp 0.4s ease both;
+}
+
+.event-card:nth-child(1) { animation-delay: 0.05s; }
+.event-card:nth-child(2) { animation-delay: 0.1s; }
+.event-card:nth-child(3) { animation-delay: 0.15s; }
+.event-card:nth-child(4) { animation-delay: 0.2s; }
+.event-card:nth-child(5) { animation-delay: 0.25s; }
+.event-card:nth-child(6) { animation-delay: 0.3s; }
+
+.event-card:hover { background: var(--parchment); }
+
+.event-card.featured {
+  background: var(--burgundy);
+  color: var(--warm-white);
+}
+.event-card.featured:hover { background: var(--burgundy-deep); }
+
+.event-month {
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+.event-card.featured .event-month { color: rgba(212,175,118,0.8); }
+
+.event-name {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+.event-card.featured .event-name { color: var(--warm-white); }
+
+.event-desc {
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.event-card.featured .event-desc { color: rgba(250,245,238,0.65); }
+
+/* ══════════════════════════════
+   PANEL: CREATE ROOM
+══════════════════════════════ */
+.create-panel.active {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  padding: 48px 0;
+  gap: 0;
+}
+
+.create-left {
+  padding-right: 60px;
+}
+
+.create-right {
+  padding-left: 60px;
+}
+
+.panel-divider { background: rgba(107,39,55,0.12); }
+
+.form-title {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.form-title em { font-style: italic; color: var(--burgundy); }
+
+.form-subtitle {
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 36px;
+  line-height: 1.6;
+}
+
+.form-field {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--warm-white);
+  border: 1px solid rgba(107,39,55,0.15);
+  color: var(--ink);
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--burgundy); }
+.form-input::placeholder { color: rgba(42,26,31,0.25); font-style: italic; font-family: 'Libre Baskerville', serif; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.btn-block {
+  width: 100%;
+  justify-content: center;
+  margin-top: 8px;
+  padding: 16px;
+}
+
+/* Info side */
+.info-block {
+  margin-bottom: 32px;
+}
+
+.info-label {
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+
+.info-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--warm-white);
+  border: 1px solid rgba(107,39,55,0.08);
+}
+
+.info-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.info-text {
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* ══════════════════════════════
+   PANEL: JOIN ROOM
+══════════════════════════════ */
+.join-panel.active {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  padding: 48px 0;
+  gap: 0;
+}
+
+.join-left { padding-right: 60px; }
+.join-right { padding-left: 60px; }
+
+.code-input-wrap {
+  margin: 28px 0;
+}
+
+.code-field {
+  display: flex;
+  gap: 8px;
+}
+
+.code-char {
+  flex: 1;
+  background: var(--warm-white);
+  border: 1px solid rgba(107,39,55,0.2);
+  color: var(--burgundy);
+  font-family: 'Libre Baskerville', serif;
+  font-size: 36px;
+  font-weight: 700;
+  text-align: center;
+  padding: 20px 8px;
+  outline: none;
+  text-transform: uppercase;
+  transition: border-color 0.2s;
+  caret-color: transparent;
+}
+.code-char:focus { border-color: var(--burgundy); background: rgba(107,39,55,0.02); }
+
+.recent-rooms {
+  margin-top: 32px;
+}
+
+.recent-label {
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+
+.room-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--warm-white);
+  border: 1px solid rgba(107,39,55,0.08);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.room-row:hover { background: var(--parchment); }
+
+.room-code-badge {
+  font-family: 'Libre Baskerville', serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--burgundy);
+  min-width: 52px;
+}
+
+.room-name-text {
+  flex: 1;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.room-players {
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── KEYFRAMES ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  html, body { overflow: auto; }
+  .app { padding: 0 20px; grid-template-rows: auto auto 1fr; height: auto; min-height: 100vh; }
+  header { grid-template-columns: 1fr; gap: 12px; }
+  .header-left, .header-right { display: none; }
+  .logo-center { grid-column: 1; }
+  .home-panel.active { grid-template-columns: 1fr; }
+  .home-divider { display: none; }
+  .home-left { padding: 32px 0; }
+  .home-right { padding: 0 0 32px; }
+  .how-panel.active { grid-template-columns: 1fr; }
+  .how-right { border-left: none; padding-left: 0; border-top: 1px solid rgba(107,39,55,0.12); padding-top: 32px; margin-top: 32px; }
+  .events-intro { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .events-intro p { text-align: left; }
+  .events-grid { grid-template-columns: 1fr 1fr; }
+  .create-panel.active, .join-panel.active { grid-template-columns: 1fr; }
+  .panel-divider { display: none; }
+  .create-left, .create-right, .join-left, .join-right { padding: 0 0 32px; }
+  .tab-btn { padding: 14px 16px; font-size: 9px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-left">
+      <span class="header-tag">Fashion · Culture · Community</span>
+      <span class="header-season">The Red Carpet Game</span>
+    </div>
+
+    <div class="logo-center">
+      <div class="logo-main">CARPET <span>CALL</span></div>
+      <div class="logo-rule">
+        <span class="logo-sub">Rate the Look · Live</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        Rooms Open
+      </div>
+    </div>
+  </header>
+
+  <!-- NAV TABS -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="showPanel('home')">Home</button>
+    <button class="tab-btn" onclick="showPanel('how')">How to Play</button>
+    <button class="tab-btn" onclick="showPanel('events')">Events</button>
+    <button class="tab-btn" onclick="showPanel('create')">Create Room</button>
+    <button class="tab-btn" onclick="showPanel('join')">Join Room</button>
+  </nav>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- HOME -->
+    <div class="panel home-panel active" id="panel-home">
+      <div class="home-left">
+        <div>
+          <h1 class="home-headline">
+            Fashion Police<br>
+            meets Kahoot.<br>
+            <em>On a call.<br>With your girls.</em>
+          </h1>
+          <p class="home-body">
+            Create a room, share the code, get on FaceTime. 
+            The host drops outfits one by one — everyone talks, 
+            votes blind, then scores reveal all at once. 
+            The chaos is the point.
+          </p>
+          <div class="home-actions">
+            <button class="btn btn-primary" onclick="showPanel('create')">Create a Room →</button>
+            <button class="btn btn-secondary" onclick="showPanel('join')">Join with Code</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="event-pill">
+            ★ &nbsp; Next up — Met Gala 2025 · May
+          </div>
+        </div>
+      </div>
+
+      <div class="home-divider"></div>
+
+      <div class="home-right">
+        <div>
+          <div style="font-size:9px; letter-spacing:0.4em; text-transform:uppercase; color:var(--gold); margin-bottom:20px;">Live Scores · Room: GLAM</div>
+          <div class="home-scores">
+            <div class="score-strip">
+              <div class="ss-avatar" style="background:var(--burgundy);">A</div>
+              <div class="ss-name">Amara</div>
+              <div class="ss-comment">"she ate and left no crumbs"</div>
+              <div class="ss-score">9</div>
+            </div>
+            <div class="score-strip">
+              <div class="ss-avatar" style="background:var(--gold);">C</div>
+              <div class="ss-name">Chichi</div>
+              <div class="ss-comment">"the shoes saved it honestly"</div>
+              <div class="ss-score">7</div>
+            </div>
+            <div class="score-strip">
+              <div class="ss-avatar" style="background:var(--blush); color: var(--ink)">T</div>
+              <div class="ss-name">Temi</div>
+              <div class="ss-comment">"theme? never heard of it"</div>
+              <div class="ss-score" style="color:var(--muted);">4</div>
+            </div>
+            <div class="score-strip">
+              <div class="ss-avatar" style="background:var(--burgundy-deep);">K</div>
+              <div class="ss-name">Kemi</div>
+              <div class="ss-comment">"iconic. periodt."</div>
+              <div class="ss-score">10</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-family:'Libre Baskerville',serif; font-style:italic; font-size:13px; color:var(--muted); line-height:1.7; padding-top:24px; border-top: 1px solid rgba(107,39,55,0.08);">
+          "Carpet Call is basically what we were already doing on the group call — now there's actually a game around it."
+        </div>
+      </div>
+    </div>
+
+    <!-- HOW TO PLAY -->
+    <div class="panel how-panel" id="panel-how">
+      <div class="how-left">
+        <h2>The game is simple.<br><em>The arguments are not.</em></h2>
+
+        <div class="steps-list">
+          <div class="step-item">
+            <div class="step-n">1</div>
+            <div>
+              <div class="step-title">Get on a call</div>
+              <p class="step-desc">FaceTime, WhatsApp, Discord — wherever your girls are. Carpet Call runs alongside your call, not instead of it.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-n">2</div>
+            <div>
+              <div class="step-title">Open a room</div>
+              <p class="step-desc">Host creates a room and shares a 4-digit code. Everyone joins on their own device, anywhere in the world.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-n">3</div>
+            <div>
+              <div class="step-title">Drop the look</div>
+              <p class="step-desc">Host reveals an outfit. Talk about it first — drag it, defend it, clock it. Then the voting phase opens.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-n">4</div>
+            <div>
+              <div class="step-title">The reveal</div>
+              <p class="step-desc">All scores drop at once. No one sees anyone else's rating until everyone has voted. The chaos begins here.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="how-right">
+        <h3>Three Phases · Every Look</h3>
+
+        <div class="phase-list">
+          <div class="phase-item">
+            <div class="phase-header">
+              <div class="phase-icon">💬</div>
+              <div class="phase-name">Phase 1 — Deliberation</div>
+              <div class="phase-tag-small">Talk First</div>
+            </div>
+            <p class="phase-desc">The outfit drops. Everyone types their hot take. No scores yet — just opinions flying before anyone locks in a number.</p>
+          </div>
+
+          <div class="phase-item">
+            <div class="phase-header">
+              <div class="phase-icon">🔒</div>
+              <div class="phase-name">Phase 2 — Voting</div>
+              <div class="phase-tag-small">Vote Blind</div>
+            </div>
+            <p class="phase-desc">Everyone rates out of 10. You can't see anyone else's score. You can't change your answer. No copying, no influencing.</p>
+          </div>
+
+          <div class="phase-item">
+            <div class="phase-header">
+              <div class="phase-icon">✦</div>
+              <div class="phase-name">Phase 3 — The Verdict</div>
+              <div class="phase-tag-small">Reveal Together</div>
+            </div>
+            <p class="phase-desc">All scores reveal simultaneously. The screaming, the "WHY did you give her a 4", the defending of terrible opinions — this is the moment.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENTS -->
+    <div class="panel events-panel" id="panel-events">
+      <div class="events-intro">
+        <h2>Every red carpet.<br><em>Every season.</em></h2>
+        <p>Create a custom room for any event — or play along with the biggest fashion nights of the year.</p>
+      </div>
+
+      <div class="events-grid">
+        <div class="event-card featured">
+          <div class="event-month">May · Coming Up</div>
+          <div class="event-name">Met Gala</div>
+          <p class="event-desc">The biggest night in fashion. The wildest outfits. The most heated verdicts of the year.</p>
+        </div>
+        <div class="event-card">
+          <div class="event-month">February · Annual</div>
+          <div class="event-name">Grammy Awards</div>
+          <p class="event-desc">Where fashion gets experimental. Expect surprises. Expect arguments.</p>
+        </div>
+        <div class="event-card">
+          <div class="event-month">March · Annual</div>
+          <div class="event-name">The Oscars</div>
+          <p class="event-desc">Old Hollywood glamour meets modern risk-taking. Classic debates every single year.</p>
+        </div>
+        <div class="event-card">
+          <div class="event-month">August · Annual</div>
+          <div class="event-name">VMAs</div>
+          <p class="event-desc">No rules. No limits. Just looks that make you say what exactly were they thinking.</p>
+        </div>
+        <div class="event-card">
+          <div class="event-month">January · Annual</div>
+          <div class="event-name">Golden Globes</div>
+          <p class="event-desc">The start of awards season. Trend-setting looks that define the whole year.</p>
+        </div>
+        <div class="event-card">
+          <div class="event-month">Anytime</div>
+          <div class="event-name">Your Night</div>
+          <p class="event-desc">Any event, any outfits, any occasion. Create a custom room and make your own rules.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATE ROOM -->
+    <div class="panel create-panel" id="panel-create">
+      <div class="create-left">
+        <div class="form-title">Create a <em>Room</em></div>
+        <p class="form-subtitle">You'll be the host. You control the pace — when looks drop, when voting opens, when scores reveal. Share the code and let your girls join.</p>
+
+        <div class="form-field">
+          <label class="form-label">Your Name</label>
+          <input class="form-input" type="text" placeholder="How you'll appear in the room" />
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">Room Name</label>
+          <input class="form-input" type="text" placeholder="e.g. Met Gala Night, VMAs 2025" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Max Players</label>
+            <input class="form-input" type="number" placeholder="6" min="2" max="20" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Event Type</label>
+            <input class="form-input" type="text" placeholder="Met Gala" />
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block">Open the Carpet →</button>
+      </div>
+
+      <div class="panel-divider"></div>
+
+      <div class="create-right">
+        <div class="info-block">
+          <div class="info-label">As Host You Can</div>
+          <div class="info-items">
+            <div class="info-item">
+              <div class="info-icon">👗</div>
+              <div class="info-text">Drop outfits one by one — paste an image link or just name the look</div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">⏱</div>
+              <div class="info-text">Control when each phase opens — deliberation, voting, and the reveal</div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">📊</div>
+              <div class="info-text">See the live scoreboard and share the final results to the group chat</div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">🔑</div>
+              <div class="info-text">Your room gets a 4-letter code — share it and everyone's in within seconds</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOIN ROOM -->
+    <div class="panel join-panel" id="panel-join">
+      <div class="join-left">
+        <div class="form-title">Join a <em>Room</em></div>
+        <p class="form-subtitle">Get the code from whoever's hosting, enter it below, and you're in. Make sure you're on a call with your girls first.</p>
+
+        <div class="form-field">
+          <label class="form-label">Your Name</label>
+          <input class="form-input" type="text" placeholder="How you'll appear in the room" />
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">Room Code</label>
+          <div class="code-field">
+            <input class="code-char" type="text" maxlength="1" />
+            <input class="code-char" type="text" maxlength="1" />
+            <input class="code-char" type="text" maxlength="1" />
+            <input class="code-char" type="text" maxlength="1" />
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block">Enter the Room →</button>
+      </div>
+
+      <div class="panel-divider"></div>
+
+      <div class="join-right">
+        <div class="recent-label">Open Rooms Right Now</div>
+
+        <div class="room-row">
+          <div class="room-code-badge">GLAM</div>
+          <div class="room-name-text">Met Gala 2025</div>
+          <div class="room-players">4 players</div>
+        </div>
+        <div class="room-row">
+          <div class="room-code-badge">DRIP</div>
+          <div class="room-name-text">Grammy Looks</div>
+          <div class="room-players">3 players</div>
+        </div>
+        <div class="room-row">
+          <div class="room-code-badge">LEWK</div>
+          <div class="room-name-text">Oscars Night</div>
+          <div class="room-players">6 players</div>
+        </div>
+        <div class="room-row">
+          <div class="room-code-badge">SLAY</div>
+          <div class="room-name-text">Friday Night Fits</div>
+          <div class="room-players">2 players</div>
+        </div>
+
+        <div style="margin-top:24px; font-family:'Libre Baskerville',serif; font-style:italic; font-size:12px; color:var(--muted); line-height:1.7;">
+          Don't see your room? Ask the host to share the code directly — rooms are private by default.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function showPanel(id) {
+    // Hide all panels
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+
+    // Show selected
+    document.getElementById('panel-' + id).classList.add('active');
+
+    // Activate tab
+    const tabs = document.querySelectorAll('.tab-btn');
+    const map = { home: 0, how: 1, events: 2, create: 3, join: 4 };
+    if (map[id] !== undefined) tabs[map[id]].classList.add('active');
+  }
+
+  // Code input — auto-advance between boxes
+  const codeChars = document.querySelectorAll('.code-char');
+  codeChars.forEach((input, i) => {
+    input.addEventListener('input', () => {
+      input.value = input.value.toUpperCase();
+      if (input.value && i < codeChars.length - 1) {
+        codeChars[i + 1].focus();
+      }
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !input.value && i > 0) {
+        codeChars[i - 1].focus();
+      }
+    });
+  });
+</script>
+</body>
+</html>
